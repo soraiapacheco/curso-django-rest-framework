@@ -3,20 +3,35 @@ from rest_framework import serializers
 
 from tag.models import Tag
 
-
-class TagSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField(max_length=255)
-    slug = serializers.SlugField()
+from .models import Recipe
 
 
-class RecipeSerializer(serializers.Serializer):
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name', 'slug']
+    # id = serializers.IntegerField()
+    # name = serializers.CharField(max_length=255)
+    # slug = serializers.SlugField()
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = [
+            'id', 'title', 'description', 'author',
+            'category', 'tags', 'public', 'preparation',
+            'tag_objects', 'tag_links',]
+
     id = serializers.IntegerField()
     title = serializers.CharField(max_length=65)
     description = serializers.CharField(max_length=165)
-    public = serializers.BooleanField(source='is_published')
+    public = serializers.BooleanField(
+        source='is_published',
+        read_only=True)
     preparation = serializers.SerializerMethodField(
-        method_name='any_method_name')
+        method_name='any_method_name',
+        read_only=True)
 
     # id of the category
     # in this case, it uses: from .models import Category
@@ -34,15 +49,6 @@ class RecipeSerializer(serializers.Serializer):
     # author = serializers.StringRelatedField()
     # or
 
-    author = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all()
-    )
-
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
-        many=True
-    )
-
     tag_objects = TagSerializer(
         many=True, source='tags'
     )
@@ -50,8 +56,8 @@ class RecipeSerializer(serializers.Serializer):
     tag_links = serializers.HyperlinkedRelatedField(
         many=True,
         source='tags',
-        queryset=Tag.objects.all(),
-        view_name='recipes:recipes_api_v2_tag'
+        view_name='recipes:recipes_api_v2_tag',
+        read_only=True,
     )
 
     def any_method_name(self, recipe):
