@@ -29,7 +29,7 @@ def recipe_api_list(request):
         )
 
 
-@api_view()
+@api_view(['get', 'patch', 'delete'])
 def recipe_api_detail(request, pk):
     # recipe = Recipe.objects.filter(pk=pk).first()
 
@@ -38,26 +38,25 @@ def recipe_api_detail(request, pk):
         Recipe.objects.get_published(),
         pk=pk
     )
-    serializer = RecipeSerializer(
-        instance=recipe,
-        many=False,
-        context={'request': request})
-    return Response(serializer.data)
-
-    # or another way changing the message
-    # it is necessary import: from rest_framework import status
-    # recipe = Recipe.objects.get_published().filter(pk=pk).first()
-    # if recipe:
-    #     serializer = RecipeSerializer(instance=recipe)
-    #     return Response(serializer.data)
-    # else:
-    #     # Put of way hard code
-    #     # return Response({
-    #     #    'detail': 'Eita',
-    #     # }, status=404)
-    #     return Response({
-    #         'detail': 'Eita',
-    #     }, status=status.HTTP_418_IM_A_TEAPOT)
+    if request.method == 'GET':
+        serializer = RecipeSerializer(
+            instance=recipe,
+            many=False,
+            context={'request': request})
+        return Response(serializer.data)
+    elif request.method == 'PATCH':
+        serializer = RecipeSerializer(
+            instance=recipe,
+            many=False,
+            data=request.data,
+            context={'request': request},
+            partial=True,)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    elif request.method == 'DELETE':
+        recipe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view()
