@@ -1,8 +1,6 @@
-from collections import defaultdict
-
-from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from authors.validators import AuthorRecipeValidator
 from tag.models import Tag
 
 from .models import Recipe
@@ -23,11 +21,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'author',
             'category', 'tags', 'public', 'preparation',
-            'tag_objects', 'tag_links',]
+            'tag_objects', 'tag_links',
+            'preparation_time',
+            'preparation_time_unit', 'servings', 'servings_unit',
+            'preparation_steps', 'cover'
 
-    id = serializers.IntegerField()
-    title = serializers.CharField(max_length=65)
-    description = serializers.CharField(max_length=165)
+        ]
+
     public = serializers.BooleanField(
         source='is_published',
         read_only=True)
@@ -45,14 +45,17 @@ class RecipeSerializer(serializers.ModelSerializer):
     #     source='category'
     # )
     # or just category
-    category = serializers.StringRelatedField()
+    category = serializers.StringRelatedField(
+        read_only=True,
+    )
 
     # name of the author
     # author = serializers.StringRelatedField()
     # or
 
     tag_objects = TagSerializer(
-        many=True, source='tags'
+        many=True, source='tags',
+        read_only=True,
     )
 
     tag_links = serializers.HyperlinkedRelatedField(
@@ -71,24 +74,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         super_validate = super().validate(attrs)
-        title = attrs.get('title')
-        description = attrs.get('description')
-
-        if title == description:
-            raise serializers.ValidationError({
-                'title': 'Cannot be equal to description',
-                'description': 'Cannot be equal to title'
-
-            }
-
-            )
+        AuthorRecipeValidator(
+            data=attrs,
+            ErrorClass=serializers.ValidationError
+        )
 
         return super_validate
-
-    def validate_title(self, value):
-        title = value
-        # print('Title:', value, 'Tamanho do title', len(title))
-
-        if len(title) < 5:
-            raise serializers.ValidationError('Must have at least 5 chars.')
-        return title
