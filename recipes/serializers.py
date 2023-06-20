@@ -71,18 +71,17 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         super_validate = super().validate(attrs)
-        cd = attrs
-        _my_errors = defaultdict(list)
-
-        title = cd.get('title')
-        description = cd.get('description')
+        title = attrs.get('title')
+        description = attrs.get('description')
 
         if title == description:
-            _my_errors['title'].append('Cannot be equal to description')
-            _my_errors['description'].append('Cannot be equal to title')
+            raise serializers.ValidationError({
+                'title': 'Cannot be equal to description',
+                'description': 'Cannot be equal to title'
 
-        if _my_errors:
-            raise serializers.ValidationError(_my_errors)
+            }
+
+            )
 
         return super_validate
 
