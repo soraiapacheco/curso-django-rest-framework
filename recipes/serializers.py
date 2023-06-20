@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -63,8 +65,31 @@ class RecipeSerializer(serializers.ModelSerializer):
     def any_method_name(self, recipe):
         return f'{recipe.preparation_time} {recipe.preparation_time_unit}'
 
-    #  or you can use the default that is get_<name of the field>
-    # preparation = serializers.SerializerMethodField()
+    # def validate(self, attrs):
+    #    print('Método validate', attrs)
+    #    return super().validate(attrs)
 
-    # def get_preparation(self, recipe):
-    #    return f'{recipe.preparation_time} {recipe.preparation_time_unit}'
+    def validate(self, attrs):
+        super_validate = super().validate(attrs)
+        cd = attrs
+        _my_errors = defaultdict(list)
+
+        title = cd.get('title')
+        description = cd.get('description')
+
+        if title == description:
+            _my_errors['title'].append('Cannot be equal to description')
+            _my_errors['description'].append('Cannot be equal to title')
+
+        if _my_errors:
+            raise serializers.ValidationError(_my_errors)
+
+        return super_validate
+
+    def validate_title(self, value):
+        title = value
+        # print('Title:', value, 'Tamanho do title', len(title))
+
+        if len(title) < 5:
+            raise serializers.ValidationError('Must have at least 5 chars.')
+        return title
