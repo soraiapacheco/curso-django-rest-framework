@@ -1,8 +1,19 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import SimpleRouter
 
 from recipes import views
 
 app_name = 'recipes'
+
+# recipes: recipe-api-list
+# recipes: recipe-api-detail pk
+recipe_api_v2_router = SimpleRouter()
+recipe_api_v2_router.register(
+    'recipes/api/v2',
+    views.RecipeAPIV2ViewSet,
+    basename='recipes-api'
+)
+
 
 urlpatterns = [
     path(
@@ -45,30 +56,34 @@ urlpatterns = [
         views.theory,
         name='theory',
     ),
-    path(
+    # path(
 
-        'recipes/api/v2/',
-        views.RecipeAPIV2ViewSet.as_view({
-            'get': 'list',
-            'post': 'create',
-        }),
-        name='recipes_api_v2',
-    ),
-    path(
+    #     'recipes/api/v2/',
+    #     views.RecipeAPIV2ViewSet.as_view({
+    #         'get': 'list',
+    #         'post': 'create',
+    #     }),
+    #     name='recipes_api_v2',
+    # ),
+    # path(
 
-        'recipes/api/v2/<int:pk>',
-        views.RecipeAPIV2ViewSet.as_view({
-            'get': 'retrieve',
-            'patch': 'partial_update',
-            'delete': 'destroy',
-        }),
-        name='recipes_api_v2_detail',
-    ),
+    #     'recipes/api/v2/<int:pk>',
+    #     views.RecipeAPIV2ViewSet.as_view({
+    #         'get': 'retrieve',
+    #         'patch': 'partial_update',
+    #         'delete': 'destroy',
+    #     }),
+    #     name='recipes_api_v2_detail',
+    # ),
     path(
 
         'recipes/api/v2/tag/<int:pk>',
         views.tag_api_detail,
         name='recipes_api_v2_tag',
     ),
+    path('', include(recipe_api_v2_router.urls))
 
 ]
+
+# other way to include router urls
+# urlpatterns += recipe_api_v2_router.urls
