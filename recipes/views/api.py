@@ -19,6 +19,17 @@ class RecipeAPIV2ViewSet(ModelViewSet):
     serializer_class = RecipeSerializer
     pagination_class = RecipeAPIV2Pagination
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # print('Parâmetros', self.kwargs)
+        # print('Query Strings', self.request.query_params)
+        category_id = self.request.query_params.get('category_id', '')
+        if category_id != '' and category_id.isnumeric():
+            qs = qs.filter(category_id=category_id)
+        # print('Category id:', category_id)
+
+        return qs
+
 
 @api_view()
 def tag_api_detail(request, pk):
