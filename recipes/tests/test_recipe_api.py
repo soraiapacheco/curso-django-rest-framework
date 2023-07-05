@@ -23,8 +23,11 @@ class RecipeAPIV2Test(test.APITestCase, RecipeMixin):
         wanted_number_of_recipes = 7
         self.make_recipe_in_batch(qtd=wanted_number_of_recipes)
         # action of the test
-        response = self.client.get(reverse('recipes:recipes-api-list'))
+
+        response = self.client.get(
+            reverse('recipes:recipes-api-list') + '?page=1')
         qtd_of_loaded_recipes = len(response.data.get('results'))
+
         # assertion of the test
         self.assertEqual(
             wanted_number_of_recipes,
